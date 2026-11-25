@@ -24,7 +24,7 @@ describe('docker run arguments', () => {
       '127.0.0.1:4010:4010',
       '-e',
       'STUB_PORT=4010',
-      'ghcr.io/foodgroup-it/stubbing-server:1.0.0',
+      'ghcr.io/ardionedavid06/stubbing-server:1.0.0',
     ]);
   });
 
@@ -76,7 +76,7 @@ describe('planFor', () => {
         {
           id: 'x',
           name: 'stubbing-server',
-          image: 'ghcr.io/foodgroup-it/stubbing-server:1.0.0',
+          image: 'ghcr.io/ardionedavid06/stubbing-server:1.0.0',
           status: 'exited',
           labels: {},
         },
@@ -91,7 +91,7 @@ describe('planFor', () => {
         {
           id: 'x',
           name: 'stubbing-server',
-          image: 'ghcr.io/foodgroup-it/stubbing-server:1.0.0',
+          image: 'ghcr.io/ardionedavid06/stubbing-server:1.0.0',
           status: 'running',
           hostPort: '4010',
           labels: {},
@@ -107,7 +107,7 @@ describe('planFor', () => {
         {
           id: 'x',
           name: 'stubbing-server',
-          image: 'ghcr.io/foodgroup-it/stubbing-server:0.9.0',
+          image: 'ghcr.io/ardionedavid06/stubbing-server:0.9.0',
           status: 'running',
           hostPort: '4010',
           labels: {},
@@ -122,7 +122,7 @@ describe('planFor', () => {
       {
         id: 'x',
         name: 'stubbing-server',
-        image: 'ghcr.io/foodgroup-it/stubbing-server:1.0.0',
+        image: 'ghcr.io/ardionedavid06/stubbing-server:1.0.0',
         status: 'running',
         hostPort: '4444',
         labels: {},
@@ -155,7 +155,7 @@ describe('DockerClient', () => {
 
     expect(state).toMatchObject({
       status: 'running',
-      image: 'ghcr.io/foodgroup-it/stubbing-server:1.0.0',
+      image: 'ghcr.io/ardionedavid06/stubbing-server:1.0.0',
       hostPort: '4010',
     });
   });
@@ -187,7 +187,7 @@ describe('DockerClient', () => {
         JSON.stringify({
           ID: 'abc',
           Names: 'orders-stub',
-          Image: 'ghcr.io/foodgroup-it/stubbing-server:1.0.0',
+          Image: 'ghcr.io/ardionedavid06/stubbing-server:1.0.0',
           State: 'running',
           Status: 'Up 2 minutes',
           Labels:

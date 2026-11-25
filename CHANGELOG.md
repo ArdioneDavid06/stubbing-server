@@ -10,7 +10,7 @@ small CLI that starts it.
 
 ### Added
 
-- `@foodgroup-it/stubbing-server`, a CLI with six commands — `start`, `stop`, `status`, `logs`,
+- `@ardionedavid06/stubbing-server`, a CLI with six commands — `start`, `stop`, `status`, `logs`,
   `pull`, `version` — and a `stubbing.config.json` per consuming repository. CLI options
   win over the file, the file wins over defaults; relative paths resolve from the config
   file, not the working directory.

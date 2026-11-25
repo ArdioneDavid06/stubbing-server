@@ -125,7 +125,7 @@ export function containerDocument(overrides: {
     Id: 'abcdef0123456789abcdef0123456789abcdef0123456789abcdef0123456789',
     Name: '/stubbing-server',
     Config: {
-      Image: overrides.image ?? 'ghcr.io/foodgroup-it/stubbing-server:1.0.0',
+      Image: overrides.image ?? 'ghcr.io/ardionedavid06/stubbing-server:1.0.0',
       Labels: labels,
     },
     State: { Status: overrides.status ?? 'running' },

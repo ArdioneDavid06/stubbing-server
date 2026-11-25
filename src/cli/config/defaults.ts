@@ -40,10 +40,10 @@ export interface StubConfig {
 }
 
 /**
- * Derived from this package's scope (`@foodgroup-it/stubbing-server`). A fork, or a
+ * Derived from this package's scope (`@ardionedavid06/stubbing-server`). A fork, or a
  * different organisation, changes this one line — or sets `image` in its config.
  */
-export const DEFAULT_IMAGE = 'ghcr.io/foodgroup-it/stubbing-server';
+export const DEFAULT_IMAGE = 'ghcr.io/ardionedavid06/stubbing-server';
 
 /** Kept in step with `package.json` at release time; `version` prints both. */
 export const DEFAULT_IMAGE_TAG = '1.0.0';

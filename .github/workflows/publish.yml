@@ -1,7 +1,7 @@
 name: publish
 
 # One tag, two artifacts that must agree on a version: the npm CLI and the image the
-# CLI runs. `npm: @foodgroup-it/stubbing-server@X` and `ghcr.io/<owner>/stubbing-server:X`.
+# CLI runs. `npm: @ardionedavid06/stubbing-server@X` and `ghcr.io/<owner>/stubbing-server:X`.
 on:
   push:
     tags:
@@ -26,7 +26,7 @@ jobs:
           # Writes an .npmrc that reads NODE_AUTH_TOKEN, so `npm publish` can
           # authenticate without a credential ever appearing in the step.
           registry-url: https://npm.pkg.github.com
-          scope: '@foodgroup-it'
+          scope: '@ardionedavid06'
 
       - run: npm ci
 
@@ -91,24 +91,29 @@ jobs:
         env:
           NODE_AUTH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
+          # The package name, not a hardcoded scope: this repository is expected to move
+          # between owners, and the name moves with it.
+          package="$(node -p "require('./package.json').name")"
+
           # A re-run of a release job must not fail on "version already exists", and
           # must not overwrite a published version either.
-          if npm view "@foodgroup-it/stubbing-server@${VERSION}" version > /dev/null 2>&1; then
-            echo "npm: @foodgroup-it/stubbing-server@${VERSION} is already published; skipping"
+          if npm view "${package}@${VERSION}" version > /dev/null 2>&1; then
+            echo "npm: ${package}@${VERSION} is already published; skipping"
           else
             npm publish
           fi
 
       - name: summary
         run: |
+          package="$(node -p "require('./package.json').name")"
           {
             echo "### Published ${VERSION}"
             echo ""
-            echo "- npm: \`@foodgroup-it/stubbing-server@${VERSION}\`"
+            echo "- npm: \`${package}@${VERSION}\`"
             echo "- image: \`${IMAGE}:${VERSION}\`"
             echo ""
             echo "Consumers move their pin deliberately:"
             echo '```'
-            echo 'npm i -D @foodgroup-it/stubbing-server@'"${VERSION}"
+            echo "npm i -D ${package}@${VERSION}"
             echo '```'
           } >> "$GITHUB_STEP_SUMMARY"

@@ -78,10 +78,12 @@ Everything here is derived from that one value:
 | image | `ghcr.io/<org>/stubbing-server:<version>` |
 | registry to publish to | `https://npm.pkg.github.com` |
 
-This repository belongs to the **`Foodgroup-IT`** org, so the scope is `@foodgroup-it`
-and the image is `ghcr.io/foodgroup-it/stubbing-server`. A fork, or a different org,
-changes `DEFAULT_IMAGE` in [`src/cli/config/defaults.ts`](src/cli/config/defaults.ts) and
-the package name — or sets `image` per project.
+The first published release lives under a **personal account**, `@ardionedavid06`, because
+the target org (`Foodgroup-IT`) does not yet grant repository-creation rights. Moving it is
+mechanical: transfer the repository, change the package name and `DEFAULT_IMAGE` in
+[`src/cli/config/defaults.ts`](src/cli/config/defaults.ts), then release again under the new
+scope. GitHub Packages requires the scope to equal the repository owner, so the two always
+move together — the publish workflow refuses to run when they disagree.
 
 ### The token
 
@@ -95,7 +97,7 @@ Docker:
 3. Put it in a user-level `.npmrc` — never in a repository:
 
    ```ini
-   @foodgroup-it:registry=https://npm.pkg.github.com
+   @ardionedavid06:registry=https://npm.pkg.github.com
    //npm.pkg.github.com/:_authToken=${GH_PACKAGES_TOKEN}
    ```
 
@@ -133,14 +135,14 @@ start the container but `pull` is refused, the Docker login is the one that is m
 ## Quick start
 
 ```bash
-npm i -D @foodgroup-it/stubbing-server
+npm i -D @ardionedavid06/stubbing-server
 ```
 
 `stubbing.config.json` next to the consuming project's `package.json`:
 
 ```json
 {
-  "image": "ghcr.io/foodgroup-it/stubbing-server",
+  "image": "ghcr.io/ardionedavid06/stubbing-server",
   "imageTag": "1.0.0",
   "containerName": "orders-e2e-stub",
   "port": 4010,
@@ -188,7 +190,7 @@ Run it:
 npx stubbing-server start
 # stubbing-server is up (started)
 #   url    http://127.0.0.1:4010
-#   image  ghcr.io/foodgroup-it/stubbing-server:1.0.0
+#   image  ghcr.io/ardionedavid06/stubbing-server:1.0.0
 #   mocks  /repo/stubs
 
 curl -s localhost:4010/v2/customers/C-1     # {"id":"C-1","name":"Ada","tier":"GOLD"}
@@ -208,7 +210,7 @@ Precedence: **CLI options > project config > defaults**. Relative paths resolve 
 
 | Key | Default | Meaning |
 |---|---|---|
-| `image` | `ghcr.io/foodgroup-it/stubbing-server` | repository, no tag |
+| `image` | `ghcr.io/ardionedavid06/stubbing-server` | repository, no tag |
 | `imageTag` | the CLI version | immutable version; `latest` is refused |
 | `containerName` | `stubbing-server` | the one container this CLI manages |
 | `host` | `127.0.0.1` | host interface; local by default |
@@ -363,7 +365,7 @@ jobs:
           node-version: 22
           cache: npm
           registry-url: https://npm.pkg.github.com
-          scope: '@foodgroup-it'
+          scope: '@ardionedavid06'
 
       - name: install, including the CLI from GitHub Packages
         run: npm ci
@@ -397,7 +399,7 @@ If the consuming repository cannot be granted access to the package, use the ima
 The CLI and the image share one version, and the release workflow refuses to publish them
 out of step.
 
-- Pin both: `"@foodgroup-it/stubbing-server": "1.0.0"` in npm and `"imageTag": "1.0.0"` in the config.
+- Pin both: `"@ardionedavid06/stubbing-server": "1.0.0"` in npm and `"imageTag": "1.0.0"` in the config.
 - `latest` is refused by the CLI, because two runs of a moving tag are two different runs.
 - Upgrade deliberately: bump both, run the suite, commit. Nothing pulls a new version on
   its own.
