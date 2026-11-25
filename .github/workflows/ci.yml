@@ -1,0 +1,49 @@
+name: ci
+
+# Free on a private repository within the plan's minutes, which is the whole reason
+# distribution stays off a paid registry.
+on:
+  push:
+    branches: [master, main]
+  pull_request:
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+
+      - run: npm ci
+      - run: npm run typecheck
+      # The example compiles against the public API, so the preset seam cannot rot.
+      - run: npm run typecheck:examples
+      - run: npm test
+      - run: npm run build
+
+  container:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - run: docker build -t rmc/stubbing:ci .
+
+      # A container that builds but does not serve is not a container. Start it, wait
+      # for the healthcheck the image declares, then install a rule and call it.
+      - name: the image serves a rule
+        run: |
+          docker run -d --name stub -p 4010:4010 rmc/stubbing:ci
+          for attempt in $(seq 1 30); do
+            if curl -fsS http://127.0.0.1:4010/health > /dev/null; then break; fi
+            sleep 1
+          done
+          curl -fsS -X POST http://127.0.0.1:4010/stub/rules \
+            -H 'content-type: application/json' \
+            -d '{"method":"GET","path":"/v1/ping","status":200,"body":{"pong":true}}'
+          test "$(curl -fsS http://127.0.0.1:4010/v1/ping)" = '{"pong":true}'
+          test "$(curl -fsS 'http://127.0.0.1:4010/stub/requests?path=ping' | head -c 1)" = '['
+          docker rm -f stub

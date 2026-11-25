@@ -1,0 +1,30 @@
+# One file to copy into a team's repository.
+#
+#   docker compose -f docker-compose.stub.yml up -d
+#
+# Then point the application's third-party base URL at http://stub:4010 and install
+# rules. There is nothing to provision: no database, no Redis, no credentials.
+
+services:
+  stub:
+    build:
+      context: .
+    image: rmc/stubbing:1
+    ports:
+      - '4010:4010'
+    environment:
+      # A preset is optional. Without one the stub serves rules, failures and the
+      # recorder, which is enough for a partner that has sent example responses.
+      STUB_PORT: '4010'
+      # STUB_PRESETS: /presets/acme.preset.js
+    healthcheck:
+      test:
+        - CMD
+        - node
+        - -e
+        - "fetch('http://127.0.0.1:4010/health').then((r)=>process.exit(r.ok?0:1)).catch(()=>process.exit(1))"
+      interval: 10s
+      timeout: 3s
+      retries: 3
+      start_period: 5s
+    restart: unless-stopped
