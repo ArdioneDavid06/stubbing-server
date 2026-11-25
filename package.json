@@ -36,6 +36,7 @@
     "typecheck": "tsc -p tsconfig.json --noEmit",
     "typecheck:examples": "tsc -p tsconfig.examples.json",
     "format": "prettier --write \"src/**/*.ts\" \"test/**/*.ts\" \"examples/**/*.ts\"",
+    "prepare": "npm run build",
     "prepublishOnly": "npm run build"
   },
   "dependencies": {

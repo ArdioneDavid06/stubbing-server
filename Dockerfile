@@ -9,7 +9,9 @@ FROM node:22-alpine AS build
 WORKDIR /app
 
 COPY package.json package-lock.json ./
-RUN npm ci
+# `--ignore-scripts` skips the `prepare` build, which would run before src/ is copied.
+# The build is an explicit step below, where both the source and the compiler exist.
+RUN npm ci --ignore-scripts
 
 COPY tsconfig.json tsconfig.build.json ./
 COPY src ./src
