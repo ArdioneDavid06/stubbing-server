@@ -1,15 +1,14 @@
 import 'reflect-metadata';
 
 /**
- * `@rmc/stubbing` - a stub server for third-party APIs.
+ * The stub server, as this repository builds it.
  *
- * Two ways in, one rule format:
+ * This is not what npm publishes: the package is the CLI (`dist/cli`), and the server
+ * is the image. Both come from this source tree, which is why the rule engine here and
+ * the runtime in the container cannot drift apart.
  *
- *   standalone   docker run --rm -p 4010:4010 rm/stubbing:1
- *   embedded     imports: [StubModule.forRoot()]
- *
- * The rule shape, the failure shape and the recorder are the contract. Everything
- * else may move.
+ * The rule shape, the failure shape and the recorder are the contract. Everything else
+ * may move.
  */
 
 export { StubModule } from './app/stub.module';

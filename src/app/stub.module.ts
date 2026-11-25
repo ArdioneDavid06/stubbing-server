@@ -34,7 +34,9 @@ import type {
 /**
  * The stub, as a NestJS module.
  *
- *   import { StubModule } from '@rmc/stubbing';
+ * This repository's entry point for the server; the published npm package is the CLI.
+ *
+ *   import { StubModule } from './app/stub.module';
  *
  *   @Module({ imports: [StubModule.forRoot()] })
  *   export class AppModule {}

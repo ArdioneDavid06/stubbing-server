@@ -1,7 +1,7 @@
 name: ci
 
-# Free on a private repository within the plan's minutes, which is the whole reason
-# distribution stays off a paid registry.
+# Validate, never publish. A pull request must be able to prove itself, and must not
+# be able to release anything.
 on:
   push:
     branches: [master, main]
@@ -20,30 +20,62 @@ jobs:
 
       - run: npm ci
       - run: npm run typecheck
-      # The example compiles against the public API, so the preset seam cannot rot.
+      # The example compiles against the library as this repository has it, so the
+      # preset seam cannot rot.
       - run: npm run typecheck:examples
       - run: npm test
       - run: npm run build
+
+      - name: the package is the CLI, and nothing else
+        run: |
+          npm pack --dry-run 2>&1 | tee pack.txt
+          # The server belongs in the image. If dist/core or dist/app appears in the
+          # tarball, the package grew a runtime it does not need to ship.
+          if grep -qE 'dist/(core|app)/' pack.txt; then
+            echo "the tarball contains server code; files[] should be dist/cli only"
+            exit 1
+          fi
 
   container:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
 
-      - run: docker build -t rmc/stubbing:ci .
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
 
-      # A container that builds but does not serve is not a container. Start it, wait
-      # for the healthcheck the image declares, then install a rule and call it.
-      - name: the image serves a rule
+      - run: npm ci
+      - run: npm run build
+
+      - name: build the image the CLI will run
         run: |
-          docker run -d --name stub -p 4010:4010 rmc/stubbing:ci
-          for attempt in $(seq 1 30); do
-            if curl -fsS http://127.0.0.1:4010/health > /dev/null; then break; fi
-            sleep 1
-          done
-          curl -fsS -X POST http://127.0.0.1:4010/stub/rules \
-            -H 'content-type: application/json' \
-            -d '{"method":"GET","path":"/v1/ping","status":200,"body":{"pong":true}}'
+          owner="$(echo "${GITHUB_REPOSITORY_OWNER}" | tr '[:upper:]' '[:lower:]')"
+          echo "IMAGE=ghcr.io/${owner}/stubbing-server" >> "$GITHUB_ENV"
+          docker build --build-arg VERSION=ci -t "${IMAGE}:ci" .
+
+      # The CLI is the interface, so CI starts the stub through the CLI rather than
+      # through docker directly. If the arguments are wrong, this is where it shows.
+      - name: the CLI starts, seeds and stops a real container
+        run: |
+          mkdir -p stubs
+          cat > stubs/partner.json <<'JSON'
+          [
+            { "method": "GET", "path": "/v1/ping", "status": 200, "body": { "pong": true } },
+            { "method": "GET", "path": "/v1/missing", "status": 404, "times": 1 }
+          ]
+          JSON
+          cat > stubbing.config.json <<'JSON'
+          { "port": 4010, "containerName": "ci-stub", "mocksPath": "./stubs" }
+          JSON
+
+          node dist/cli/index.js start --image "${IMAGE}" --image-tag ci --no-pull
           test "$(curl -fsS http://127.0.0.1:4010/v1/ping)" = '{"pong":true}'
-          test "$(curl -fsS 'http://127.0.0.1:4010/stub/requests?path=ping' | head -c 1)" = '['
-          docker rm -f stub
+          test "$(curl -fsS -o /dev/null -w '%{http_code}' http://127.0.0.1:4010/v1/missing)" = '404'
+          node dist/cli/index.js status
+          node dist/cli/index.js stop --remove
+
+      - name: always stop the container
+        if: always()
+        run: docker rm -f ci-stub || true

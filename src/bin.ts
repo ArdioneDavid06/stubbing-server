@@ -4,10 +4,10 @@ import { logBanner, loadPreset, startStubServer } from './app/container';
 import type { StubPreset } from './core/preset.types';
 
 const USAGE = `
-@rmc/stubbing - a stub server for third-party APIs
+stubbing-server runtime - the stub for third-party APIs, in Docker
 
 Usage
-  stub-server [options]
+  node dist/bin.js [options]
 
 Options
   -p, --port <port>     port to listen on (default 4010, or $STUB_PORT)

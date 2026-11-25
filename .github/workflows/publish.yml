@@ -1,0 +1,100 @@
+name: publish
+
+# One tag, two artifacts that must agree on a version: the npm CLI and the image the
+# CLI runs. `npm: @rmc/stubbing-server@X` and `ghcr.io/<owner>/stubbing-server:X`.
+on:
+  push:
+    tags:
+      - 'v*'
+
+# Least privilege: read the repository, write packages. Nothing here needs to push
+# commits or touch issues.
+permissions:
+  contents: read
+  packages: write
+
+jobs:
+  publish:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+          # Writes an .npmrc that reads NODE_AUTH_TOKEN, so `npm publish` can
+          # authenticate without a credential ever appearing in the step.
+          registry-url: https://npm.pkg.github.com
+          scope: '@rmc'
+
+      - run: npm ci
+
+      - name: the tag and package.json must agree
+        run: |
+          tag="${GITHUB_REF_NAME#v}"
+          pkg="$(node -p "require('./package.json').version")"
+          if [ "$tag" != "$pkg" ]; then
+            echo "tag $GITHUB_REF_NAME does not match package.json $pkg"
+            echo "Bump the version, commit, and re-tag. Two artifacts of different"
+            echo "versions is the failure this workflow exists to prevent."
+            exit 1
+          fi
+          echo "VERSION=$tag" >> "$GITHUB_ENV"
+
+      - run: npm test
+      - run: npm run typecheck
+      - run: npm run build
+
+      - name: build the image
+        run: |
+          # GHCR requires a lowercase path; repository owners do not have to be.
+          owner="$(echo "${GITHUB_REPOSITORY_OWNER}" | tr '[:upper:]' '[:lower:]')"
+          echo "IMAGE=ghcr.io/${owner}/stubbing-server" >> "$GITHUB_ENV"
+          docker build --build-arg "VERSION=${VERSION}" -t "${IMAGE}:${VERSION}" .
+
+      - name: the image serves a rule
+        run: |
+          docker run -d --name stub -p 4010:4010 "${IMAGE}:${VERSION}"
+          for attempt in $(seq 1 30); do
+            if curl -fsS http://127.0.0.1:4010/health > /dev/null; then break; fi
+            sleep 1
+          done
+          curl -fsS -X POST http://127.0.0.1:4010/stub/rules \
+            -H 'content-type: application/json' \
+            -d '{"method":"GET","path":"/v1/ping","status":200,"body":{"pong":true}}' > /dev/null
+          test "$(curl -fsS http://127.0.0.1:4010/v1/ping)" = '{"pong":true}'
+          docker rm -f stub
+
+      - name: publish the image
+        run: |
+          echo "${GITHUB_TOKEN}" | docker login ghcr.io -u "${GITHUB_ACTOR}" --password-stdin
+          docker push "${IMAGE}:${VERSION}"
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: publish the CLI, unless this version exists
+        env:
+          NODE_AUTH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          # A re-run of a release job must not fail on "version already exists", and
+          # must not overwrite a published version either.
+          if npm view "@rmc/stubbing-server@${VERSION}" version > /dev/null 2>&1; then
+            echo "npm: @rmc/stubbing-server@${VERSION} is already published; skipping"
+          else
+            npm publish
+          fi
+
+      - name: summary
+        run: |
+          {
+            echo "### Published ${VERSION}"
+            echo ""
+            echo "- npm: \`@rmc/stubbing-server@${VERSION}\`"
+            echo "- image: \`${IMAGE}:${VERSION}\`"
+            echo ""
+            echo "Consumers move their pin deliberately:"
+            echo '```'
+            echo 'npm i -D @rmc/stubbing-server@'"${VERSION}"
+            echo '```'
+          } >> "$GITHUB_STEP_SUMMARY"

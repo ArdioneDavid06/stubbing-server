@@ -1,19 +1,17 @@
 import { Controller, Get, Param } from '@nestjs/common';
-import { definePreset } from '@rmc/stubbing';
+import { definePreset } from '../../src';
 
 /**
- * A preset, as a consuming team writes one.
+ * A preset, as this repository writes one.
  *
- * It lives in that team's repository, is loaded with `--preset`, and needs no change
- * to this package. The partner below is fictional: there is no real preset in this
- * package, on purpose.
+ * The published npm package is the CLI only — the server lives in the image — so a
+ * preset is not something a consuming team installs. It is how *this* repository adds
+ * a partner's routes, and the shape a team copies if it ever builds its own image:
  *
- * Build it with the rest of the consuming project, then:
+ *   FROM ghcr.io/<org>/stubbing-server:1.0.0
+ *   COPY dist/presets/acme /presets/acme
  *
- *   npx stub-server --preset ./dist/acme.preset.js
- *
- * `npm run typecheck:examples` compiles this file against the package's public API,
- * so the seam cannot rot without the build failing.
+ * `npm run typecheck:examples` compiles this file, so the seam cannot rot quietly.
  */
 
 /** The answer the partner documented. Fields it did not document are left out. */

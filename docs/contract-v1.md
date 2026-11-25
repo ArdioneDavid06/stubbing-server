@@ -55,6 +55,11 @@ A document is **long** if it has `request`, **flat** if it has `path`, and it ma
 both. Mixing them is `400` with a message naming the fields that did it, because a
 document where `body` could be the answer *or* the matcher has no single meaning.
 
+A document in a file is the same document as one posted. `mocksPath` in a project config
+mounts a directory of `*.json` files read-only and installs each entry through the same
+validation, so `{"method": "GET", "path": "/v2/customers/:id", …}` means the same thing
+whether it arrived over HTTP or in a repository.
+
 ### 1.4 What `GET /stub/rules` returns
 
 The normalised long shape, plus:

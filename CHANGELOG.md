@@ -5,51 +5,64 @@ are the contract; see [docs/contract-v1.md](docs/contract-v1.md).
 
 ## [1.0.0] - 2026-11-26
 
-The first release: the stub from Remote's `apps/stub-server`, extracted as a package that
-knows nothing about any partner.
+The first release: the stub from Remote's `apps/stub-server`, as one Docker runtime and one
+small CLI that starts it.
 
 ### Added
 
-- `@rmc/stubbing` as an embedded NestJS module (`StubModule.forRoot`) and a standalone
-  container (`stub-server`, `--preset`, `Dockerfile`, `docker-compose.stub.yml`).
-- The rule format in two shapes — flat (`method`, `path`, `status`, `body`) and long
-  (`request`/`response`) — both accepted, both normalised to the long shape.
-- `sessionId` on a rule, scoped by the `x-stub-session` header, so two runs can share one
-  container. `DELETE /stub/rules?sessionId=` cleans up one run.
-- The recorder entry now carries `responseStatus` and `ruleId`, filled in when the answer
-  finishes, so a 404 and the rule that answered are both visible after the fact.
-- `times` on a failure, defaulting to `1`.
-- A preset seam: `definePreset({ name, controllers, providers, keyOf })`. Adding a partner
-  route does not touch `core/`; `test/preset-seam.spec.ts` is the proof.
-- `test/compatibility.spec.ts`: one recorded rule document per released minor, answered by
-  the package's own suite.
-- `npm run typecheck:examples`, so `examples/custom-preset` cannot rot.
-- A `prepare` script that builds `dist/` on install, because `dist/` is not in git and a
-  git dependency (`npm i github:<org>/stubbing#v1.0.0`) installs from a clone. Without it
-  that route ships a package whose `main` and `bin` do not exist — built here, broken
-  there.
+- `@rmc/stubbing-server`, a CLI with six commands — `start`, `stop`, `status`, `logs`,
+  `pull`, `version` — and a `stubbing.config.json` per consuming repository. CLI options
+  win over the file, the file wins over defaults; relative paths resolve from the config
+  file, not the working directory.
+- `start` validates Docker, pulls the pinned image, refuses a taken port before running
+  anything, waits for `/health` with a configurable timeout, and prints the URL. A timeout
+  prints the container's last lines instead of a bare "exit 1".
+- Containers are labelled `com.rmc.stubbing.managed`, `.project` and `.version`. `stop`
+  refuses a container this tool did not create, and a container built from another image
+  or publishing another port is a refusal rather than a silent replacement.
+- Exit codes are part of the interface: `0` did it, `1` could not, `2` the request was
+  impossible.
+- `mocksPath`: a directory of `*.json` rules (and `failures.json`) mounted read-only and
+  seeded at startup through the same validation `POST /stub/rules` uses. A bad entry stops
+  the container before the port opens, with `file[index]` in the message.
+- The image carries `org.opencontainers.image.version`, so `stubbing-server version`
+  reports the runtime's version rather than the tag someone typed.
+- `ci.yml` proves the CLI against a real container on every pull request, and fails if the
+  npm tarball ever grows server code. `publish.yml` publishes the image and the CLI from
+  one tag, refuses a tag that disagrees with `package.json`, and skips an npm publish that
+  already exists.
 
 ### Changed
 
+- The npm package is the **CLI only** (`files: ["dist/cli"]`, ~42 kB, no server, no Nest at
+  runtime). The server lives in the GHCR image. A team that wants the stub as a library now
+  uses this repository, not a published tarball.
+- The rule format is unchanged from the implementation this was extracted from: both the
+  flat and the long shape are accepted, and both normalise to the same stored rule.
 - The failure key is `key`, not `merchantID`. `merchantID` is still accepted, from
   `src/compat/` rather than from core, because it is a partner's word for an identifier —
   not a concept — and core must not carry one.
-- Failure injection moved from per-route calls to one middleware, so it works for any path,
-  including one the stub has no route for.
-- A failure now beats a rule. A rule describes an endpoint; a failure describes one call
-  that must go wrong.
+- Failure injection is one middleware, so it works for any path, including one the stub has
+  no route for. A failure beats a path rule: a rule describes an endpoint, a failure
+  describes one call that must go wrong.
+- The recorder entry carries `responseStatus` and `ruleId`, filled in when the answer
+  finishes, so a 404 and the rule that answered are both visible after the fact.
 
 ### Deliberately not included
 
-- **No CDH or GrabFood presets.** They are Remote's specifics, and this package is the
-  thing every team gets. Remote's own routes stay in Remote.
-- **No authentication.** A stub that rejects a request for the wrong reason teaches
-  nothing; see the open questions in the contract.
+- **No CDH or GrabFood presets.** They are Remote's specifics; this is the thing every team
+  gets. Presets remain a seam in this repository, exercised by
+  `test/preset-seam.spec.ts`, not a published extension point.
+- **No authentication on the management API.** A stub that rejects a request for the wrong
+  reason teaches nothing. Bind it to `127.0.0.1`, which the CLI does by default.
+- **No Docker SDK.** The CLI shells out with argument arrays, so a container name is never
+  a fragment of a command line.
 
 ### Deviations from the plan worth naming
 
 - The plan said "the rule id in the body". The body is the partner's answer, and adding a
-  field to it would be exactly the kind of invention §7 warns about. The id is on
+  field to it would be the kind of invention the honesty rules warn about. The id is on
   `x-stub-rule` and in the recorder entry instead.
-- Presets are TypeScript/NestJS objects rather than a declarative fixture format. The
-  format question (plan §8.2) is still open; the seam does not decide it.
+- The plan described an embedded module as a second way in. The CLI-plus-image split makes
+  the container the only supported way for a consuming team; the module still exists in
+  this repository, and is what the tests and the image run.
