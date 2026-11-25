@@ -11,9 +11,9 @@ jobs:
   test:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v5
 
-      - uses: actions/setup-node@v4
+      - uses: actions/setup-node@v5
         with:
           node-version: 22
           cache: npm
@@ -39,9 +39,9 @@ jobs:
   container:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v5
 
-      - uses: actions/setup-node@v4
+      - uses: actions/setup-node@v5
         with:
           node-version: 22
           cache: npm
@@ -52,8 +52,11 @@ jobs:
       - name: build the image the CLI will run
         run: |
           owner="$(echo "${GITHUB_REPOSITORY_OWNER}" | tr '[:upper:]' '[:lower:]')"
-          echo "IMAGE=ghcr.io/${owner}/stubbing-server" >> "$GITHUB_ENV"
-          docker build --build-arg VERSION=ci -t "${IMAGE}:ci" .
+          # A shell variable in this step, because $GITHUB_ENV only reaches later
+          # steps â€” using it here is how this tag once became ":ci".
+          image="ghcr.io/${owner}/stubbing-server"
+          echo "IMAGE=${image}" >> "$GITHUB_ENV"
+          docker build --build-arg VERSION=ci -t "${image}:ci" .
 
       # The CLI is the interface, so CI starts the stub through the CLI rather than
       # through docker directly. If the arguments are wrong, this is where it shows.
