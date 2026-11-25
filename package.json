@@ -17,7 +17,8 @@
     }
   },
   "bin": {
-    "stub-server": "./dist/bin.js"
+    "stub-server": "./dist/bin.js",
+    "stubbing-server": "./dist/cli/index.js"
   },
   "files": [
     "dist",

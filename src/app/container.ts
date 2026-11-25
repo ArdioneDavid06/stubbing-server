@@ -6,6 +6,9 @@ import * as path from 'node:path';
 import type { StubPreset } from '../core/preset.types';
 import type { StubModuleOptions } from '../core/stub-options';
 import { SESSION_HEADER, RULE_HEADER, KEY_HEADER } from '../core/constants';
+import { Rules } from '../core/dynamic/rules.service';
+import { Failures } from '../core/failures/failures.service';
+import { seedMocks } from './mocks';
 import { StubModule } from './stub.module';
 
 /** How the standalone container is configured. */
@@ -15,6 +18,12 @@ export interface StubServerOptions extends StubModuleOptions {
   host?: string;
   /** Request body limit. Defaults to 5mb, because a partner fixture can be large. */
   bodyLimit?: string;
+  /**
+   * A directory of `*.json` rules (and an optional `failures.json`) installed at
+   * startup. The container image gets this from `STUB_MOCKS_DIR`, which the CLI sets
+   * when a config has a `mocksPath`.
+   */
+  mocksDir?: string;
 }
 
 /**
@@ -40,6 +49,22 @@ export async function createStubServer(
   // The application under test is usually in another container, reached by service
   // name. Nothing here holds a secret, so there is nothing for CORS to protect.
   app.enableCors();
+
+  if (options.mocksDir) {
+    // Before `listen`, so a bad file stops the container instead of leaving a stub
+    // that answers 404 to everything and looks healthy.
+    const result = seedMocks({
+      dir: options.mocksDir,
+      rules: app.get(Rules),
+      failures: app.get(Failures),
+      log: (line) => Logger.log(line, 'Mocks'),
+    });
+
+    Logger.log(
+      `seeded ${result.rules} rule(s) and ${result.failures} failure(s) from ${options.mocksDir}`,
+      'Mocks',
+    );
+  }
 
   return app;
 }

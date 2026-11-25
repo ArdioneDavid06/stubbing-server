@@ -20,10 +20,19 @@ RUN npm run build \
 
 FROM node:22-alpine AS runtime
 
+# The release tag, so `stubbing-server version` can say which runtime it is running
+# instead of guessing from the tag a developer typed.
+ARG VERSION=dev
+
 ENV NODE_ENV=production \
     STUB_PORT=4010
 
 WORKDIR /app
+
+LABEL org.opencontainers.image.title="stubbing-server" \
+      org.opencontainers.image.description="A stub server for third-party APIs: install a rule at runtime instead of rebuilding a fake" \
+      org.opencontainers.image.version="${VERSION}" \
+      org.opencontainers.image.licenses="UNLICENSED"
 
 COPY --from=build /app/node_modules ./node_modules
 COPY --from=build /app/dist ./dist

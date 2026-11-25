@@ -20,6 +20,8 @@ export {
   logBanner,
 } from './app/container';
 export type { StubServerOptions, RunningStub } from './app/container';
+export { seedMocks } from './app/mocks';
+export type { SeedOptions, SeedResult } from './app/mocks';
 
 export type { StubModuleOptions } from './core/stub-options';
 export {

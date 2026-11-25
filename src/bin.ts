@@ -110,6 +110,9 @@ async function run(options: CliOptions): Promise<void> {
       port: options.port,
       host: options.host,
       presets: options.presets,
+      // The container image is told where the mounted rules are by the CLI, which
+      // sets this from the config's `mocksPath`.
+      mocksDir: process.env.STUB_MOCKS_DIR || undefined,
     });
   } catch (error) {
     fail(`could not start: ${(error as Error).message}`);
