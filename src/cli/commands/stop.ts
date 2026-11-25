@@ -22,7 +22,7 @@ export async function stop(
     return 0;
   }
 
-  if (existing.labels['com.rmc.stubbing.managed'] !== 'true') {
+  if (existing.labels['com.foodgroup.stubbing.managed'] !== 'true') {
     throw operationError(
       `container "${config.containerName}" exists but was not created by this CLI`,
       'Refusing to stop it. Choose a different --name, or stop it with docker yourself.',

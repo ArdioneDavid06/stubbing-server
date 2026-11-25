@@ -1,7 +1,7 @@
 name: publish
 
 # One tag, two artifacts that must agree on a version: the npm CLI and the image the
-# CLI runs. `npm: @rmc/stubbing-server@X` and `ghcr.io/<owner>/stubbing-server:X`.
+# CLI runs. `npm: @foodgroup-it/stubbing-server@X` and `ghcr.io/<owner>/stubbing-server:X`.
 on:
   push:
     tags:
@@ -26,7 +26,7 @@ jobs:
           # Writes an .npmrc that reads NODE_AUTH_TOKEN, so `npm publish` can
           # authenticate without a credential ever appearing in the step.
           registry-url: https://npm.pkg.github.com
-          scope: '@rmc'
+          scope: '@foodgroup-it'
 
       - run: npm ci
 
@@ -79,8 +79,8 @@ jobs:
         run: |
           # A re-run of a release job must not fail on "version already exists", and
           # must not overwrite a published version either.
-          if npm view "@rmc/stubbing-server@${VERSION}" version > /dev/null 2>&1; then
-            echo "npm: @rmc/stubbing-server@${VERSION} is already published; skipping"
+          if npm view "@foodgroup-it/stubbing-server@${VERSION}" version > /dev/null 2>&1; then
+            echo "npm: @foodgroup-it/stubbing-server@${VERSION} is already published; skipping"
           else
             npm publish
           fi
@@ -90,11 +90,11 @@ jobs:
           {
             echo "### Published ${VERSION}"
             echo ""
-            echo "- npm: \`@rmc/stubbing-server@${VERSION}\`"
+            echo "- npm: \`@foodgroup-it/stubbing-server@${VERSION}\`"
             echo "- image: \`${IMAGE}:${VERSION}\`"
             echo ""
             echo "Consumers move their pin deliberately:"
             echo '```'
-            echo 'npm i -D @rmc/stubbing-server@'"${VERSION}"
+            echo 'npm i -D @foodgroup-it/stubbing-server@'"${VERSION}"
             echo '```'
           } >> "$GITHUB_STEP_SUMMARY"

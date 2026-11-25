@@ -117,15 +117,15 @@ export function containerDocument(overrides: {
   hostPort?: string | null;
 }): Record<string, unknown> {
   const labels = overrides.labels ?? {
-    'com.rmc.stubbing.managed': 'true',
-    'com.rmc.stubbing.project': 'stubbing-server',
+    'com.foodgroup.stubbing.managed': 'true',
+    'com.foodgroup.stubbing.project': 'stubbing-server',
   };
 
   return {
     Id: 'abcdef0123456789abcdef0123456789abcdef0123456789abcdef0123456789',
     Name: '/stubbing-server',
     Config: {
-      Image: overrides.image ?? 'ghcr.io/rmc/stubbing-server:1.0.0',
+      Image: overrides.image ?? 'ghcr.io/foodgroup-it/stubbing-server:1.0.0',
       Labels: labels,
     },
     State: { Status: overrides.status ?? 'running' },

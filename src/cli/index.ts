@@ -17,7 +17,7 @@ import { version } from './commands/version';
 import type { CommandContext } from './context';
 
 const HELP = `
-@rmc/stubbing-server - run the stubbing server in Docker
+@foodgroup-it/stubbing-server - run the stubbing server in Docker
 
 Usage
   stubbing-server <command> [options]

@@ -86,9 +86,9 @@ export interface ManagedContainer extends ContainerState {
   project: string;
 }
 
-const MANAGED_LABEL = 'com.rmc.stubbing.managed';
-const PROJECT_LABEL = 'com.rmc.stubbing.project';
-const VERSION_LABEL = 'com.rmc.stubbing.version';
+const MANAGED_LABEL = 'com.foodgroup.stubbing.managed';
+const PROJECT_LABEL = 'com.foodgroup.stubbing.project';
+const VERSION_LABEL = 'com.foodgroup.stubbing.version';
 
 export class DockerClient {
   constructor(readonly exec: ExecFn = spawnDocker()) {}

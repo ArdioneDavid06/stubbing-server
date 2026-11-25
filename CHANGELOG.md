@@ -10,14 +10,14 @@ small CLI that starts it.
 
 ### Added
 
-- `@rmc/stubbing-server`, a CLI with six commands — `start`, `stop`, `status`, `logs`,
+- `@foodgroup-it/stubbing-server`, a CLI with six commands — `start`, `stop`, `status`, `logs`,
   `pull`, `version` — and a `stubbing.config.json` per consuming repository. CLI options
   win over the file, the file wins over defaults; relative paths resolve from the config
   file, not the working directory.
 - `start` validates Docker, pulls the pinned image, refuses a taken port before running
   anything, waits for `/health` with a configurable timeout, and prints the URL. A timeout
   prints the container's last lines instead of a bare "exit 1".
-- Containers are labelled `com.rmc.stubbing.managed`, `.project` and `.version`. `stop`
+- Containers are labelled `com.foodgroup.stubbing.managed`, `.project` and `.version`. `stop`
   refuses a container this tool did not create, and a container built from another image
   or publishing another port is a refusal rather than a silent replacement.
 - Exit codes are part of the interface: `0` did it, `1` could not, `2` the request was

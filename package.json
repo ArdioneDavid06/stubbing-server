@@ -1,5 +1,5 @@
 {
-  "name": "@rmc/stubbing-server",
+  "name": "@foodgroup-it/stubbing-server",
   "version": "1.0.0",
   "description": "Run the stubbing server in Docker: start it from a project config, seed rules from files, and point a functional test at it while the third party's endpoint does not exist yet.",
   "license": "UNLICENSED",

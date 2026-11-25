@@ -9,7 +9,7 @@ services:
   stub:
     build:
       context: .
-    image: rmc/stubbing:1
+    image: ghcr.io/foodgroup-it/stubbing-server:1.0.0
     ports:
       - '4010:4010'
     environment:

@@ -15,16 +15,16 @@ describe('docker run arguments', () => {
       '--name',
       'stubbing-server',
       '--label',
-      'com.rmc.stubbing.managed=true',
+      'com.foodgroup.stubbing.managed=true',
       '--label',
-      'com.rmc.stubbing.project=stubbing-server',
+      'com.foodgroup.stubbing.project=stubbing-server',
       '--label',
-      'com.rmc.stubbing.version=1.0.0',
+      'com.foodgroup.stubbing.version=1.0.0',
       '-p',
       '127.0.0.1:4010:4010',
       '-e',
       'STUB_PORT=4010',
-      'ghcr.io/rmc/stubbing-server:1.0.0',
+      'ghcr.io/foodgroup-it/stubbing-server:1.0.0',
     ]);
   });
 
@@ -76,7 +76,7 @@ describe('planFor', () => {
         {
           id: 'x',
           name: 'stubbing-server',
-          image: 'ghcr.io/rmc/stubbing-server:1.0.0',
+          image: 'ghcr.io/foodgroup-it/stubbing-server:1.0.0',
           status: 'exited',
           labels: {},
         },
@@ -91,7 +91,7 @@ describe('planFor', () => {
         {
           id: 'x',
           name: 'stubbing-server',
-          image: 'ghcr.io/rmc/stubbing-server:1.0.0',
+          image: 'ghcr.io/foodgroup-it/stubbing-server:1.0.0',
           status: 'running',
           hostPort: '4010',
           labels: {},
@@ -107,7 +107,7 @@ describe('planFor', () => {
         {
           id: 'x',
           name: 'stubbing-server',
-          image: 'ghcr.io/rmc/stubbing-server:0.9.0',
+          image: 'ghcr.io/foodgroup-it/stubbing-server:0.9.0',
           status: 'running',
           hostPort: '4010',
           labels: {},
@@ -122,7 +122,7 @@ describe('planFor', () => {
       {
         id: 'x',
         name: 'stubbing-server',
-        image: 'ghcr.io/rmc/stubbing-server:1.0.0',
+        image: 'ghcr.io/foodgroup-it/stubbing-server:1.0.0',
         status: 'running',
         hostPort: '4444',
         labels: {},
@@ -155,7 +155,7 @@ describe('DockerClient', () => {
 
     expect(state).toMatchObject({
       status: 'running',
-      image: 'ghcr.io/rmc/stubbing-server:1.0.0',
+      image: 'ghcr.io/foodgroup-it/stubbing-server:1.0.0',
       hostPort: '4010',
     });
   });
@@ -187,11 +187,11 @@ describe('DockerClient', () => {
         JSON.stringify({
           ID: 'abc',
           Names: 'orders-stub',
-          Image: 'ghcr.io/rmc/stubbing-server:1.0.0',
+          Image: 'ghcr.io/foodgroup-it/stubbing-server:1.0.0',
           State: 'running',
           Status: 'Up 2 minutes',
           Labels:
-            'com.rmc.stubbing.managed=true,com.rmc.stubbing.project=orders',
+            'com.foodgroup.stubbing.managed=true,com.foodgroup.stubbing.project=orders',
           Ports: '127.0.0.1:4010->4010/tcp',
         }),
       ].join('\n'),

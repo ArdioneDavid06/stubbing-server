@@ -76,7 +76,7 @@ describe('start', () => {
   it('refuses to replace a container built from another image', async () => {
     const ctx = context({
       container: containerDocument({
-        image: 'ghcr.io/rmc/stubbing-server:0.9.0',
+        image: 'ghcr.io/foodgroup-it/stubbing-server:0.9.0',
       }),
     });
     const error = await failureOf(start(ctx));
@@ -99,7 +99,7 @@ describe('start', () => {
     await start(ctx);
 
     expect(ctx.out.lines.join('\n')).toContain(
-      'pulling ghcr.io/rmc/stubbing-server:1.0.0',
+      'pulling ghcr.io/foodgroup-it/stubbing-server:1.0.0',
     );
   });
 

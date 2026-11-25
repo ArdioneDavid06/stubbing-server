@@ -65,9 +65,9 @@ export function runArgs(
   options: { version: string },
 ): string[] {
   const labels = {
-    'com.rmc.stubbing.managed': 'true',
-    'com.rmc.stubbing.project': config.containerName,
-    'com.rmc.stubbing.version': options.version,
+    'com.foodgroup.stubbing.managed': 'true',
+    'com.foodgroup.stubbing.project': config.containerName,
+    'com.foodgroup.stubbing.version': options.version,
   };
 
   const environment: Record<string, string> = {
