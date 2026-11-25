@@ -24,6 +24,10 @@ knows nothing about any partner.
 - `test/compatibility.spec.ts`: one recorded rule document per released minor, answered by
   the package's own suite.
 - `npm run typecheck:examples`, so `examples/custom-preset` cannot rot.
+- A `prepare` script that builds `dist/` on install, because `dist/` is not in git and a
+  git dependency (`npm i github:<org>/stubbing#v1.0.0`) installs from a clone. Without it
+  that route ships a package whose `main` and `bin` do not exist — built here, broken
+  there.
 
 ### Changed
 

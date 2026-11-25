@@ -333,6 +333,77 @@ defended.
 
 ---
 
+## Getting it into another project
+
+Three ways, all free. Pick one by how many teams will consume it.
+
+### 1. Tarball — a handoff, an offline build, or a feed
+
+```bash
+npm pack                         # rmc-stubbing-1.0.0.tgz, built from dist/
+# in the consuming project:
+npm i ../rmc-stubbing-1.0.0.tgz
+```
+
+Good for one team, an air-gapped build, or uploading once to an artifact feed you already
+have (Azure Artifacts, Nexus, Artifactory, Verdaccio). The tarball is ~48 kB packed and
+carries `dist/`, so the consumer compiles nothing.
+
+### 2. Git dependency — the default for a private repo
+
+```bash
+npm i github:<org>/stubbing#v1.0.0
+```
+
+```json
+{ "dependencies": { "@rmc/stubbing": "github:<org>/stubbing#v1.0.0" } }
+```
+
+`dist/` is **not** in git — a build artifact does not belong there — so the package's
+`prepare` script compiles it during the install in npm's clone. That is the whole reason
+`prepare` exists; without it this route installs a package whose `main` and `bin` point at
+files that are not there.
+
+Trade-off: a git dependency is cloned and built on every fresh `npm i`, and needs git,
+network and a TypeScript-capable Node. A tarball or a registry avoids that.
+
+### 3. A registry — only when the number of consumers justifies it
+
+Nothing here needs one, but if you decide you want it:
+
+- **GitHub Packages** (free for private packages): add
+  `"publishConfig": { "registry": "https://npm.pkg.github.com" }`, set `"private": false`,
+  and give consumers an `.npmrc` with
+  `//npm.pkg.github.com/:_authToken=${GITHUB_TOKEN}`.
+- **Public npm**: the `@rmc` scope has to exist and belong to the org, and `license` has to
+  stop being `UNLICENSED`.
+
+Before publishing anywhere, three things:
+
+1. `"private": false` — it is `true` today, so an accidental `npm publish` is refused.
+2. Pick a licence.
+3. Publish from the tagged commit, so the tarball matches `v1.0.0` and not a working tree.
+
+The container needs none of this: `docker build .` from a clone, or push the image to any
+registry you already have (GHCR has a free allowance).
+
+### Releasing
+
+```bash
+# 1. bump the version and add a CHANGELOG line that says what broke and why
+npm version 1.1.0 --no-git-tag-version
+# 2. prove it before the tag exists
+npm test && npm run typecheck && npm run build
+# 3. tag and push
+git commit -am "chore(release): v1.1.0"
+git tag -a v1.1.0 -m "v1.1.0"
+git push origin master --tags
+```
+
+Consumers upgrade by moving the pin — deliberately, which is the point of a tag.
+
+---
+
 ## Versioning
 
 The rule format, the failure shape and the recorder are the contract, so **a breaking
