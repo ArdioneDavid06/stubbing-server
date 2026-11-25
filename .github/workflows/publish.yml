@@ -30,6 +30,18 @@ jobs:
 
       - run: npm ci
 
+      - name: the package scope must match the repository owner
+        run: |
+          owner="$(echo "${GITHUB_REPOSITORY_OWNER}" | tr '[:upper:]' '[:lower:]')"
+          scope="$(node -p "require('./package.json').name.split('/')[0].slice(1)")"
+          if [ "$owner" != "$scope" ]; then
+            echo "package scope @${scope} does not match the repository owner ${owner}."
+            echo "GitHub Packages requires the scope to be the owner, so this release"
+            echo "would be refused at publish time. Move the repository into @${scope},"
+            echo "or rename the package to @${owner}/stubbing-server."
+            exit 1
+          fi
+
       - name: the tag and package.json must agree
         run: |
           tag="${GITHUB_REF_NAME#v}"
