@@ -134,9 +134,25 @@ start the container but `pull` is refused, the Docker login is the one that is m
 
 ## Quick start
 
+The repository and the container image are public, so the CLI installs straight from the
+repository — no token, no registry configuration, no `docker login`:
+
 ```bash
-npm i -D @ardionedavid06/stubbing-server
+npm i -D "git+https://github.com/ArdioneDavid06/stubbing-server.git#v1.0.0"
 ```
+
+Pin the tag, not `master`: two installs a week apart should be the same tool.
+
+If your account can read the published npm package, the registry route works too and
+skips the build-on-install:
+
+```bash
+npm i -D @ardionedavid06/stubbing-server@1.0.0
+```
+
+The npm package's visibility is set in its package settings page — `--access public` has
+no effect on GitHub Packages, which is why the git route above is the one that always
+works.
 
 `stubbing.config.json` next to the consuming project's `package.json`:
 
