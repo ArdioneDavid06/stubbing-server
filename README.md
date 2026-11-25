@@ -150,15 +150,24 @@ npm i -D "git+https://github.com/ArdioneDavid06/stubbing-server.git#v1.0.0"
 
 Pin the tag, not `master`: two installs a week apart should be the same tool.
 
-If your account can read the published npm package, the registry route works too:
+The package is also on GitHub Packages. It is faster to install, but it **always needs a
+token** — even though the package is public. That is how GitHub's npm registry works; the
+container, by contrast, pulls anonymously.
+
+```ini
+# ~/.npmrc
+@ardionedavid06:registry=https://npm.pkg.github.com
+//npm.pkg.github.com/:_authToken=${GH_PACKAGES_TOKEN}
+```
 
 ```bash
 npm i -D @ardionedavid06/stubbing-server@1.0.0
 ```
 
-The npm package's visibility is set on its own package settings page — `--access public`
-has no effect on GitHub Packages, which is why the two routes above are the ones that
-always work.
+`GH_PACKAGES_TOKEN` is any token with `read:packages` — `gh auth token` works. Public
+visibility decides *who* may read (any GitHub account), not *whether* a token is needed,
+which is measured rather than assumed: `npm view` answers with a token and returns 401
+without one, while the same release pulls from `ghcr.io` with no credentials.
 
 `stubbing.config.json` next to the consuming project's `package.json`:
 
