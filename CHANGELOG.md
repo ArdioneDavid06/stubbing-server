@@ -3,6 +3,32 @@
 Every release says what broke and why. The rule format, the failure shape and the recorder
 are the contract; see [docs/contract-v1.md](docs/contract-v1.md).
 
+## [1.1.0] - 2026-11-26
+
+The package now ships the library as well as the CLI, because a functional suite sometimes
+wants the server in its own process rather than in a container.
+
+### Added
+
+- `main`, `types` and `exports` for the package root: `startStubServer`, `createStubServer`,
+  `StubModule`, `definePreset`, `seedMocks`, and the injectable `Recorder`, `Rules` and
+  `Failures`. A test can start the server on an ephemeral port, seed it from the same JSON
+  files the container reads, and assert on the recorder without an HTTP round trip.
+- `exports["./cli"]`, so a programmatic caller can reach the CLI entry point.
+
+### Changed
+
+- The tarball is ~87 kB rather than ~44 kB: `files` includes all of `dist`. It installs no
+  dependency it did not already install, because the CLI package already declared the Nest
+  runtime.
+- The CI guard now asserts that both entry points are present and that the test suite is
+  not, rather than asserting that no server code is shipped.
+
+### Unchanged
+
+- Every rule, failure and recorder shape. This is a minor release in the sense the contract
+  means it: nothing stored has to change.
+
 ## [1.0.0] - 2026-11-26
 
 The first release: the stub from Remote's `apps/stub-server`, as one Docker runtime and one

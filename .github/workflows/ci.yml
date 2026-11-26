@@ -26,13 +26,15 @@ jobs:
       - run: npm test
       - run: npm run build
 
-      - name: the package is the CLI, and nothing else
+      - name: the package contains what it promises
         run: |
           npm pack --dry-run 2>&1 | tee pack.txt
-          # The server belongs in the image. If dist/core or dist/app appears in the
-          # tarball, the package grew a runtime it does not need to ship.
-          if grep -qE 'dist/(core|app)/' pack.txt; then
-            echo "the tarball contains server code; files[] should be dist/cli only"
+
+          # The two entry points a consumer gets, and nothing from the test suite.
+          grep -q 'dist/cli/index.js' pack.txt || { echo "missing dist/cli/index.js"; exit 1; }
+          grep -q 'dist/index.js' pack.txt || { echo "missing dist/index.js"; exit 1; }
+          if grep -qE '^\s*npm notice [0-9.]+k?B test/' pack.txt; then
+            echo "the tarball contains the test suite"
             exit 1
           fi
 

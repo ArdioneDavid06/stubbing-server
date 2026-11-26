@@ -41,8 +41,10 @@ partner's sandbox. It proves *our* side. It cannot prove theirs.
                  └────────────────┘
 ```
 
-Two artifacts, one version: the npm package is **only the CLI** (it never contains the
-server), and the image is **only the runtime**. The CLI's job is to make the container
+One version, two ways to consume it. The npm package gives you the **CLI** and the
+**library** — the same server, importable when a test would rather run it in-process than
+in a container. The image is the runtime for everyone else: .NET, Java, Python, PHP, or a
+team that does not want a second Node process. The CLI's job is to make the container
 boring to start: check Docker, pull the right tag, mount the rules, wait for `/health`,
 and say what went wrong when it does not.
 
@@ -52,7 +54,7 @@ and say what went wrong when it does not.
 
 | | |
 |---|---|
-| Node.js | 20 or newer — for the CLI only |
+| Node.js | 20 or newer — for the CLI, or for importing the library |
 | Docker | Docker Desktop or the Docker Engine, running |
 | GitHub access | a token that can read the package and the image; see below |
 
@@ -231,6 +233,56 @@ npx stubbing-server stop
 
 The decisions a stub makes are documented in [docs/contract-v1.md](docs/contract-v1.md):
 the two rule shapes, failure injection, the recorder, and what counts as a breaking change.
+
+---
+
+## Embedded: run it in-process
+
+The same server, without Docker — for a functional suite that would rather own the process
+and talk to it over a real socket. Nothing else changes: the app under test still makes HTTP
+calls, so the client, serialisation and error paths are the same as production.
+
+```ts
+import { startStubServer } from '@ardionedavid06/stubbing-server';
+
+let stub: Awaited<ReturnType<typeof startStubServer>>;
+
+beforeAll(async () => {
+  stub = await startStubServer({
+    port: 0,                 // any free port
+    mocksDir: './stubs',     // the same JSON rules the container seeds
+  });
+
+  // point the app under test at stub.url for this suite
+});
+
+afterAll(async () => {
+  await stub.close();
+});
+```
+
+Because it is the module, a test can assert on the recorder directly instead of over HTTP:
+
+```ts
+import { Recorder, Rules, Failures } from '@ardionedavid06/stubbing-server';
+
+const recorder = stub.app.get(Recorder);
+expect(recorder.matching('/v2/customers').at(-1)?.body).toEqual({ id: 'C-1' });
+
+stub.app.get(Rules).add({ method: 'GET', path: '/v3/customers/C-1', status: 503 });
+stub.app.get(Failures).add({ key: 'C-1', status: 409 });
+```
+
+Or mount it inside an existing NestJS application:
+
+```ts
+@Module({ imports: [StubModule.forRoot()] })
+export class AppModule {}
+```
+
+Use the CLI and the image for a whole suite and for CI: a container cannot leak state into
+the test process, and it proves the thing the partner actually talks to. Import when the
+test is about one call and a socket is enough.
 
 ---
 
@@ -512,7 +564,7 @@ Packages* and *About billing for GitHub Actions* pages are the source of truth.
 
 What keeps usage small regardless of plan:
 
-- the npm package is ~42 kB, and only the CLI;
+- the npm package is ~87 kB, and needs no dependency it did not already need;
 - one image per release, tagged by version, no per-branch images;
 - CI runs on pull requests and tags only — no nightly builds;
 - consumers pull the image once per job, and Actions caches are enabled in the workflows
@@ -534,10 +586,11 @@ src/bin.ts       the server entry point, and the image's CMD
 examples/        a day-one script, and the shape of a preset
 ```
 
-The published npm package is `dist/cli` only; the image is the server. A partner that needs
-its own routes adds a **preset** (see [`examples/custom-preset`](examples/custom-preset)) and
+The published package ships the CLI (`dist/cli`) and the library (`dist/index.js`), both
+built from this one source tree, and the image runs the same code. A partner that needs its
+own routes adds a **preset** (see [`examples/custom-preset`](examples/custom-preset)) and
 builds its own image from this repository — presets are code, so they cannot ride along in
-a 42 kB CLI.
+a package every consumer installs.
 
 ```bash
 npm install
